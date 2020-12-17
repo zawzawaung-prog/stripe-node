@@ -2,6 +2,7 @@
 
 const testUtils = require('../../testUtils');
 const fs = require('fs');
+const expect = require('chai').expect;
 
 describe('Quotes Resource', () => {
   it('pdf', (callback) => {
@@ -28,6 +29,38 @@ describe('Quotes Resource', () => {
           res.on('end', () => {
             return callback();
           });
+        }
+      );
+    });
+  });
+
+  it('pdf, an error', (callback) => {
+    const handleRequest = (req, res) => {
+      setTimeout(() => res.writeHead(500));
+      setTimeout(
+        () =>
+          res.write(
+            '{"error": "api_error", "error_description": "this is bad"}'
+          ),
+        10
+      );
+      setTimeout(() => res.end(), 20);
+    };
+
+    testUtils.getTestServerStripe(handleRequest, (err, stripe) => {
+      if (err) {
+        return callback(err);
+      }
+
+      return stripe.quotes.pdf(
+        {id: 'qt_123'},
+        {host: 'localhost'},
+        (err, res) => {
+          expect(err).to.exist;
+          console.log(err);
+          expect(err.raw.type).to.equal('api_error');
+          expect(err.raw.message).to.equal('this is bad');
+          return callback();
         }
       );
     });
