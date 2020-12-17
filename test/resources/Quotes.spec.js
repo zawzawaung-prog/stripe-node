@@ -17,17 +17,19 @@ describe('Quotes Resource', () => {
         return callback(err);
       }
 
-      return stripe.quotes
-        .pdf({id: 'qt_123'}, {host: 'localhost'})
-        .then((res) => {
+      return stripe.quotes.pdf(
+        {id: 'qt_123'},
+        {host: 'localhost'},
+        (err, res) => {
+          if (err) {
+            return callback(err);
+          }
           res.pipe(fs.createWriteStream('/tmp/myquotespdf'));
           res.on('end', () => {
             return callback();
           });
-        })
-        .catch((err) => {
-          return callback(err);
-        });
+        }
+      );
     });
   });
 });
